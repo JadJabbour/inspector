@@ -134,7 +134,7 @@ class MCPJamClientManager {
           normalizedName,
           async (elicitationRequest: ElicitationRequest) => {
             return await this.handleElicitationRequest(elicitationRequest);
-          },
+          }
         );
       }
 
@@ -279,7 +279,7 @@ class MCPJamClientManager {
   getResourcesForServer(serverId: string): DiscoveredResource[] {
     const id = normalizeServerId(serverId);
     return Array.from(this.resourceRegistry.values()).filter(
-      (r) => r.serverId === id,
+      (r) => r.serverId === id
     );
   }
 
@@ -290,13 +290,13 @@ class MCPJamClientManager {
   getPromptsForServer(serverId: string): DiscoveredPrompt[] {
     const id = normalizeServerId(serverId);
     return Array.from(this.promptRegistry.values()).filter(
-      (p) => p.serverId === id,
+      (p) => p.serverId === id
     );
   }
 
   async executeToolDirect(
     toolName: string,
-    parameters: Record<string, any>,
+    parameters: Record<string, any>
   ): Promise<ToolResult> {
     // toolName may include server prefix "serverId:tool"
     let serverId = "";
@@ -364,10 +364,11 @@ class MCPJamClientManager {
 
   async getResource(
     resourceUri: string,
-    serverId: string,
+    serverId: string
   ): Promise<ResourceContent> {
     // resourceUri may include server prefix
     let uri = resourceUri;
+    serverId = normalizeServerId(serverId);
     const client = this.mcpClients.get(serverId);
     if (!client) throw new Error("No MCP client available");
     const content = await client.resources.read(serverId, uri);
@@ -377,8 +378,9 @@ class MCPJamClientManager {
   async getPrompt(
     promptName: string,
     serverId: string,
-    args?: Record<string, any>,
+    args?: Record<string, any>
   ): Promise<PromptResult> {
+    serverId = normalizeServerId(serverId);
     const client = this.mcpClients.get(serverId);
     if (!client) throw new Error("No MCP client available");
     const content = await client.prompts.get({
@@ -393,7 +395,7 @@ class MCPJamClientManager {
    * Handles elicitation requests from MCP servers during direct tool execution
    */
   private async handleElicitationRequest(
-    elicitationRequest: ElicitationRequest,
+    elicitationRequest: ElicitationRequest
   ): Promise<ElicitationResponse> {
     const requestId = `elicit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -428,7 +430,7 @@ class MCPJamClientManager {
    */
   respondToElicitation(
     requestId: string,
-    response: ElicitationResponse,
+    response: ElicitationResponse
   ): boolean {
     const pending = this.pendingElicitations.get(requestId);
     if (!pending) {
@@ -461,7 +463,7 @@ class MCPJamClientManager {
       requestId: string;
       message: string;
       schema: any;
-    }) => Promise<ElicitationResponse>,
+    }) => Promise<ElicitationResponse>
   ): void {
     this.elicitationCallback = callback;
   }
