@@ -50,13 +50,45 @@ export function ServerModal({
   const [useCustomClientId, setUseCustomClientId] = useState(false);
   const [clientIdError, setClientIdError] = useState<string | null>(null);
   const [clientSecretError, setClientSecretError] = useState<string | null>(
-    null,
+    null
   );
   const [envVars, setEnvVars] = useState<Array<{ key: string; value: string }>>(
-    [],
+    []
   );
+  const [headerVars, setHeaderVars] = useState<
+    Array<{ key: string; value: string }>
+  >([]);
 
-  // Convert ServerWithName to ServerFormData format
+  useEffect(() => {
+    if (isOpen && serverFormData.type === "http") {
+      const headers = serverFormData.headers || {};
+      const headerEntries = Object.entries(headers)
+        .filter(([key]) => key.toLowerCase() !== "authorization")
+        .map(([key, value]) => ({ key, value: String(value) }));
+      setHeaderVars(headerEntries);
+    } else if (!isOpen) {
+      setHeaderVars([]);
+    }
+  }, [isOpen, serverFormData.type, serverFormData.headers]);
+
+  const addHeaderVar = () => {
+    setHeaderVars([...headerVars, { key: "", value: "" }]);
+  };
+
+  const updateHeaderVar = (
+    index: number,
+    field: "key" | "value",
+    value: string
+  ) => {
+    const updated = [...headerVars];
+    updated[index][field] = value;
+    setHeaderVars(updated);
+  };
+
+  const removeHeaderVar = (index: number) => {
+    setHeaderVars(headerVars.filter((_, i) => i !== index));
+  };
+
   const convertServerConfig = (server: ServerWithName): ServerFormData => {
     const config = server.config;
     const isHttpServer = "url" in config;
@@ -137,7 +169,7 @@ export function ServerModal({
           ([key, value]) => ({
             key,
             value: String(value),
-          }),
+          })
         );
         setEnvVars(envEntries);
       } else {
@@ -249,24 +281,30 @@ export function ServerModal({
             if (key && value) acc[key] = value;
             return acc;
           },
-          {} as Record<string, string>,
+          {} as Record<string, string>
         );
         finalFormData = { ...finalFormData, env: envObj };
       }
 
       if (serverFormData.type === "http") {
+        // Compose headers from headerVars (excluding Authorization)
+        let customHeaders: Record<string, string> = {};
+        headerVars.forEach(({ key, value }) => {
+          if (key && value) customHeaders[key] = value;
+        });
+
         if (authType === "none") {
           finalFormData = {
             ...finalFormData,
             useOAuth: false,
-            headers: mode === "edit" ? {} : finalFormData.headers, // Clear headers for edit, preserve for add
+            headers: customHeaders,
           };
           delete (finalFormData as any).oauthScopes;
         } else if (authType === "bearer" && bearerToken) {
           finalFormData = {
             ...finalFormData,
             headers: {
-              ...finalFormData.headers,
+              ...customHeaders,
               Authorization: `Bearer ${bearerToken}`,
             },
             useOAuth: false,
@@ -286,7 +324,7 @@ export function ServerModal({
             clientSecret: useCustomClientId
               ? clientSecret.trim() || undefined
               : undefined,
-            headers: mode === "edit" ? {} : finalFormData.headers, // Clear headers for edit, preserve for add
+            headers: customHeaders,
           };
           if (scopes.length > 0) {
             (finalFormData as any).oauthScopes = scopes;
@@ -344,7 +382,7 @@ export function ServerModal({
   const updateEnvVar = (
     index: number,
     field: "key" | "value",
-    value: string,
+    value: string
   ) => {
     const updated = [...envVars];
     updated[index][field] = value;
@@ -504,9 +542,61 @@ export function ServerModal({
             </div>
           )}
 
-          {/* Authentication for HTTP */}
+          {/* Authentication and Custom Headers for HTTP */}
           {serverFormData.type === "http" && (
             <div className="space-y-4">
+              {/* Custom Headers Section */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-foreground">
+                    Custom Headers
+                  </label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addHeaderVar}
+                    className="text-xs"
+                  >
+                    Add Header
+                  </Button>
+                </div>
+                {headerVars.length > 0 && (
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {headerVars.map((headerVar, index) => (
+                      <div key={index} className="flex gap-2 items-center">
+                        <Input
+                          value={headerVar.key}
+                          onChange={(e) =>
+                            updateHeaderVar(index, "key", e.target.value)
+                          }
+                          placeholder="Header Name"
+                          className="flex-1 text-xs"
+                        />
+                        <Input
+                          value={headerVar.value}
+                          onChange={(e) =>
+                            updateHeaderVar(index, "value", e.target.value)
+                          }
+                          placeholder="Header Value"
+                          className="flex-1 text-xs"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeHeaderVar(index)}
+                          className="px-2 text-xs"
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Authentication Section */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground">
                   Authentication

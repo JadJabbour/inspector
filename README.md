@@ -142,9 +142,11 @@ cd inspector
 
 # Install dependencies
 npm install
+npm run install:deps
 
 # Start development server
-npm run dev
+npm run dev:server
+npm run dev:client
 ```
 
 The development server will start at `http://localhost:3000` with hot reloading enabled.
