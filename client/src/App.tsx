@@ -24,13 +24,19 @@ import { Toaster } from "./components/ui/sonner";
 
 // Import global styles
 import "./index.css";
+import { updateThemeMode } from "./lib/theme-utils";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("servers");
   const isDebugCallback = useMemo(
     () => window.location.pathname.startsWith("/oauth/callback/debug"),
-    [],
+    []
   );
+
+  // get system theme
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 
   const {
     appState,
@@ -81,7 +87,7 @@ export default function App() {
                 <SidebarTrigger className="-ml-1" />
               </div>
               <div className="flex items-center gap-2">
-                <ThemeSwitcher />
+                <ThemeSwitcher defaultMode={systemTheme} />
               </div>
             </div>
           </header>
@@ -129,9 +135,9 @@ export default function App() {
                 allServerConfigsMap={Object.fromEntries(
                   Object.entries(connectedServerConfigs)
                     .filter(
-                      ([, entry]) => entry.connectionStatus === "connected",
+                      ([, entry]) => entry.connectionStatus === "connected"
                     )
-                    .map(([name, entry]) => [name, entry.config]),
+                    .map(([name, entry]) => [name, entry.config])
                 )}
               />
             )}
