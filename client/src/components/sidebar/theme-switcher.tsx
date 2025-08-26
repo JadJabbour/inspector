@@ -5,18 +5,14 @@ import { updateThemeMode } from "@/lib/theme-utils";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 import { useEffect } from "react";
 
-export function ThemeSwitcher({
-  defaultMode,
-}: {
-  defaultMode?: "light" | "dark";
-}) {
+export function ThemeSwitcher({ defaultMode }: { defaultMode?: string }) {
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
 
   useEffect(() => {
     if (defaultMode) {
-      updateThemeMode(defaultMode);
-      setThemeMode(defaultMode);
+      updateThemeMode(defaultMode == "dark" ? "dark" : "light");
+      setThemeMode(defaultMode == "dark" ? "dark" : "light");
     }
   }, [defaultMode, setThemeMode]);
 

@@ -24,7 +24,6 @@ import { Toaster } from "./components/ui/sonner";
 
 // Import global styles
 import "./index.css";
-import { updateThemeMode } from "./lib/theme-utils";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("servers");
@@ -34,9 +33,20 @@ export default function App() {
   );
 
   // get system theme
-  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  const [systemTheme, setSystemTheme] = useState(
+    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => {
+      setSystemTheme(mediaQuery.matches ? "dark" : "light");
+    };
+    mediaQuery.addEventListener("change", handleChange);
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, []);
 
   const {
     appState,
